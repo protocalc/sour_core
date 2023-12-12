@@ -6,3 +6,7 @@ Core code to be used both in porter and SOUR which is the graphical interface to
 pip install -e .
 ```
 
+## Requirements 
+
+The only external library required for the code is ```pyUSB```
+
