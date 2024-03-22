@@ -704,6 +704,8 @@ class SONYconn:
             file_name = self.name.strip().lower().replace(" ", "") + ".json"
 
         if os.path.exists(file_path + file_name) and not self.prop_loaded:
+            print(file_path)
+            print(file_name)
             with open(file_path + file_name, "r") as jfile:
                 vals = json.load(jfile)
             self.prop_loaded = True
@@ -1087,8 +1089,6 @@ class SONYconn:
         else:
             value = float(Fraction(value))
 
-        self.camera_properties = self.get_camera_properties()
-
         available_shutter = list(
             map(
                 lambda x: float(Fraction(x)),
@@ -1317,7 +1317,7 @@ class SONYconn:
         cmdMsg = self.connection._PTPMsg(
             USBcodes.USB_OPERATIONS["Command"],
             self._OPCODES["Values"]["SetControlDeviceA"],
-            params,
+            params=params,
             transaction=self.transactionID,
         )
 
