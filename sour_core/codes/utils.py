@@ -85,7 +85,7 @@ class property:
     def decoder(self, **kwargs):
         if self.prop == "ISO":
             return self.bin2ISO(self.val)
-        elif self.prop == "ShutterSpeed":
+        elif self.prop == "ShutterSpeed":   
             return self.bytes2shutter(self.val)
         elif self.prop == "ExposureBiasCompensation":
             return self.bytes2expcomp(self.val)

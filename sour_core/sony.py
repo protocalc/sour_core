@@ -25,6 +25,7 @@ import sour_core.codes.fileops as FOcodes
 
 if logging.getLogger().hasHandlers():
     logger = logging.getLogger()
+
 else:
     path = os.path.dirname(os.path.realpath(__file__))
     date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -42,7 +43,6 @@ else:
         level=logging.DEBUG,
     )
     logger = logging.getLogger("CameraLog")
-
 
 class SONYconn:
     def __init__(self, name, **kwargs):
@@ -704,8 +704,6 @@ class SONYconn:
             file_name = self.name.strip().lower().replace(" ", "") + ".json"
 
         if os.path.exists(file_path + file_name) and not self.prop_loaded:
-            print(file_path)
-            print(file_name)
             with open(file_path + file_name, "r") as jfile:
                 vals = json.load(jfile)
             self.prop_loaded = True
@@ -728,7 +726,7 @@ class SONYconn:
             vals = self._all_properties_msg(resp["Payload"])
 
             self.transactionID += 1
-
+            
             self.camera_properties = copy.copy(vals)
 
             self.__focus_mode = copy.copy(
@@ -788,6 +786,7 @@ class SONYconn:
                     flag = False
 
                 out = self._set_focus_distance(value[1], flag)
+        time.sleep(0.1)
 
         return out
 
@@ -1117,9 +1116,9 @@ class SONYconn:
 
         num, den = decimal.Decimal(str(value)).as_integer_ratio()
 
-        num_bytes = struct.pack(self.__endian + "H", num)
+        num_bytes = struct.pack("<H", num)
 
-        den_bytes = struct.pack(self.__endian + "H", den)
+        den_bytes = struct.pack("<H", den)
 
         val = den_bytes + num_bytes
 
@@ -1130,7 +1129,7 @@ class SONYconn:
             }
         }
 
-        mode = {"Msg": {"Value": val, "DataType": "NA"}}
+        mode = {"Msg": {"Value": val, "DataType": "L"}}
 
         PTPmsg = self.connection.send_recv_Msg(
             USBcodes.USB_OPERATIONS["Command"],
@@ -1211,6 +1210,7 @@ class SONYconn:
             self._OPCODES["Values"]["SetControlDeviceA"],
             params=params,
             data=mode,
+            transaction=self.transactionID
         )
 
         resp = self.connection._decode_msg(PTPmsg)
@@ -1450,6 +1450,9 @@ class SONYconn:
 
     def _set_focus_infinity(self):
         self.get_camera_properties()
+        
+        if self.__focus_mode == "AF_S":
+            self._set_focus_mode(mode="manual")
 
         current_distance = self.camera_properties["ManualFocusDistance"][
             "CurrentValue"
