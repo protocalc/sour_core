@@ -67,6 +67,10 @@ class SONYconn:
         self.__video_modes = ["Movie", "HiFrameRate"]
         self.__photo_count = 0
         self._recording_status = False
+        
+    def close_usb_connection(self):
+        
+        self.connection._release_usb()
 
     def _session_handler(self, ControlMode="RemoteControl"):
         """

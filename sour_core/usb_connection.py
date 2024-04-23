@@ -96,6 +96,10 @@ class USBconn:
         self.__setup_camera()
 
         usb.util.claim_interface(self.__dev, self.__intf)
+        
+    def _release_usb(self):
+        
+        usb.util.dispose_resources(self.__dev)
 
     def _choose_specific_camera(self, **kwargs):
         """Select a specific camera"""
