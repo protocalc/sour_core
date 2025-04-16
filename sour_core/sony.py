@@ -24,7 +24,7 @@ import sour_core.codes.fileops as FOcodes
 
 
 if logging.getLogger().hasHandlers():
-    logger = logging.getLogger()
+    camera_logger = logging.getself.logger()
 
 else:
     path = os.path.dirname(os.path.realpath(__file__))
@@ -42,13 +42,24 @@ else:
         datefmt="%m/%d/%Y %H:%M:%S",
         level=logging.DEBUG,
     )
-    logger = logging.getLogger("CameraLog")
+    camera_logger = logging.getLogger("CameraLog")
 
 class SONYconn:
     def __init__(self, name, **kwargs):
         self.name = name
 
         camera = kwargs.get("camera", None)
+        self.logger = kwargs.get("log", camera_logger)
+        
+        print("self.logger Name: ", self.logger.name)
+        print("self.logger Name: ", self.logger.level)
+        for handle in self.logger.handlers:
+            print("self.logger Name: ", handle)
+            print("self.logger Type: ", type(handle))
+            print("self.logger Level: ", handle.level)
+            print("self.logger Formatter: ", handle.formatter)
+            if isinstance(handle, logging.FileHandler):
+                print("self.logger File: ", handle.baseFilename)
 
         if camera:
             self.connection = USBconn.USBconn(camera=camera)
@@ -117,16 +128,16 @@ class SONYconn:
             if resp["RespCode"] == "OK":
                 self._session_open = not self._session_open
                 if self._session_open:
-                    logger.info(
+                    self.logger.info(
                         f"Open Session to Camera in {ControlMode} mode"
                     )
                 else:
-                    logger.info("Close Session to Camera")
+                    self.logger.info("Close Session to Camera")
             else:
                 if not self._session_open:
-                    logger.info("Cannot Open Session to Camera")
+                    self.logger.info("Cannot Open Session to Camera")
                 else:
-                    logger.info("Cannot Close Session to Camera")
+                    self.logger.info("Cannot Close Session to Camera")
 
         self.transactionID += 1
 
@@ -213,9 +224,9 @@ class SONYconn:
         resp.append(self.__sony_info())
 
         if all(list(map(lambda r: r == "OK", resp))):
-            logger.info("Camera Initialized Correctly")
+            self.logger.info("Camera Initialized Correctly")
         else:
-            logger.info("Camera Not Initialized Correctly")
+            self.logger.info("Camera Not Initialized Correctly")
 
         time.sleep(0.05)
 
@@ -905,15 +916,15 @@ class SONYconn:
 
         if len(resp) == expected_resp:
             if all(list(map(lambda r: r == "OK", resp))):
-                logger.info(f"Photo Captured # {self.__photo_count} at {t} s")
+                self.logger.info(f"Photo Captured # {self.__photo_count} at {t} s")
 
                 self.__photo_count += 1
                 return True
             else:
-                logger.info("Photo not Captured")
+                self.logger.info("Photo not Captured")
                 return False
         else:
-            logger.info("Did not get response from Commands")
+            self.logger.info("Did not get response from Commands")
             return False
 
     def _video_control(self):
@@ -1031,15 +1042,15 @@ class SONYconn:
 
         if len(resp) == expected_resp:
             if all(list(map(lambda r: r == "OK", resp))):
-                logger.info(f"Video Status # {self.__video_status} at {t} s")
+                self.logger.info(f"Video Status # {self.__video_status} at {t} s")
 
                 self.__photo_count += 1
                 return True
             else:
-                logger.info("Video Command Failed")
+                self.logger.info("Video Command Failed")
                 return False
         else:
-            logger.info("Did not get response from Commands")
+            self.logger.info("Did not get response from Commands")
             return False
 
     def _set_focus_mode(self, mode="auto"):
@@ -1080,7 +1091,7 @@ class SONYconn:
 
         if resp["MsgType"] == "Response":
             if resp["RespCode"] == "OK":
-                logger.info(f"Set Focus Mode: {mode}")
+                self.logger.info(f"Set Focus Mode: {mode}")
 
                 return True
 
@@ -1114,7 +1125,7 @@ class SONYconn:
 
                 value = available_shutter[idx]
 
-            logger.info(
+            self.logger.info(
                 f"Choose the closest Shutter Speed, {value}, to the one selected {old}"
             )
 
@@ -1153,7 +1164,7 @@ class SONYconn:
 
         if resp["MsgType"] == "Response":
             if resp["RespCode"] == "OK":
-                logger.info(f"Set New Shutter Speed: {value}")
+                self.logger.info(f"Set New Shutter Speed: {value}")
 
                 return True
 
@@ -1196,7 +1207,7 @@ class SONYconn:
 
             tmp = code_utils.property("ISO", newISO, self.__endian).decoder()
 
-            logger.info(
+            self.logger.info(
                 f"Choose the closest ISO, {tmp}, to the one selected {value}"
             )
 
@@ -1227,7 +1238,7 @@ class SONYconn:
 
         if resp["MsgType"] == "Response":
             if resp["RespCode"] == "OK":
-                logger.info(f"Set New ISO: {value}")
+                self.logger.info(f"Set New ISO: {value}")
 
                 return True
 
@@ -1271,11 +1282,11 @@ class SONYconn:
 
         if resp["MsgType"] == "Response":
             if resp["RespCode"] == "OK":
-                logger.info(f"Set Camera mode: {self._current_mode}_{mode}")
+                self.logger.info(f"Set Camera mode: {self._current_mode}_{mode}")
 
                 return True
             else:
-                logger.info(f"Impossible to set Camera mode to {mode}")
+                self.logger.info(f"Impossible to set Camera mode to {mode}")
 
                 return False
 
@@ -1376,18 +1387,18 @@ class SONYconn:
                     .astimezone()
                     .strftime("%Y-%m-%d %H:%M:%S.%f")
                 )
-                logger.info(f"Set camera DateTime to {camera_time}")
-                logger.info(f"Loop accuracy for Timing: {delta * 1000} ms")
+                self.logger.info(f"Set camera DateTime to {camera_time}")
+                self.logger.info(f"Loop accuracy for Timing: {delta * 1000} ms")
 
                 cmd_timing = (
                     datetime.datetime.fromtimestamp(timing)
                     .astimezone()
                     .strftime("%Y-%m-%d %H:%M:%S.%f")
                 )
-                logger.info(f"Command Sent at {cmd_timing}")
+                self.logger.info(f"Command Sent at {cmd_timing}")
 
                 accuracy = (timing - math.ceil(t) + delta) * 1000
-                logger.info(f"Predicted Accuracy: {accuracy} ms")
+                self.logger.info(f"Predicted Accuracy: {accuracy} ms")
 
                 time.sleep(0.5)
 
@@ -1428,7 +1439,7 @@ class SONYconn:
 
         if resp["MsgType"] == "Response":
             if resp["RespCode"] == "OK":
-                logger.info(f"Moved focus by a single step {focus_step}")
+                self.logger.info(f"Moved focus by a single step {focus_step}")
 
                 return True
 
@@ -1443,13 +1454,13 @@ class SONYconn:
 
         if all(resp):
             if further:
-                logger.info(f"Set Focus further by {nstep}")
+                self.logger.info(f"Set Focus further by {nstep}")
             else:
-                logger.info(f"Set Focus closer by {nstep}")
+                self.logger.info(f"Set Focus closer by {nstep}")
 
             return True
         else:
-            logger.info("Cannot Set Focus Distance")
+            self.logger.info("Cannot Set Focus Distance")
             return False
 
     def _set_focus_infinity(self):
@@ -1467,7 +1478,7 @@ class SONYconn:
         r = self._set_focus_distance(nstep)
 
         if r:
-            logger.info("Set focus distance to infinity")
+            self.logger.info("Set focus distance to infinity")
 
             return True
 
@@ -1551,7 +1562,7 @@ class SONYconn:
             self.transactionID += 1
 
             if resp["Payload"] == download_code:
-                logger.info(f"Downloaded File {file_name}")
+                self.logger.info(f"Downloaded File {file_name}")
                 break
 
             counter1 += 8
