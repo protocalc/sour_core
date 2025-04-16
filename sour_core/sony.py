@@ -50,16 +50,6 @@ class SONYconn:
 
         camera = kwargs.get("camera", None)
         self.logger = kwargs.get("log", camera_logger)
-        
-        print("self.logger Name: ", self.logger.name)
-        print("self.logger Name: ", self.logger.level)
-        for handle in self.logger.handlers:
-            print("self.logger Name: ", handle)
-            print("self.logger Type: ", type(handle))
-            print("self.logger Level: ", handle.level)
-            print("self.logger Formatter: ", handle.formatter)
-            if isinstance(handle, logging.FileHandler):
-                print("self.logger File: ", handle.baseFilename)
 
         if camera:
             self.connection = USBconn.USBconn(camera=camera)
